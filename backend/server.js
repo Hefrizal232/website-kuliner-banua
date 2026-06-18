@@ -146,7 +146,6 @@ app.delete("/api/kuliner/:id", async (req, res) => {
   return res.json({ message: "Kuliner berhasil dihapus" });
 });
 
-// ROUTE YANG SUDAH DIPERBAIKI (MENGHAPUS .select() AGAR COMPATIBLE DENGAN POLICY RLS INSERT GUEST)
 app.post("/api/saran", async (req, res) => {
   try {
     const { nama, pesan } = req.body;
@@ -170,13 +169,20 @@ app.post("/api/saran", async (req, res) => {
 });
 
 app.get("/api/saran", async (req, res) => {
-  const { data, error } = await supabase
-    .from("kritik_saran")
-    .select("*")
-    .order("id", { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from("kritik_saran")
+      .select("*")
+      .order("id", { ascending: false });
 
-  if (error) return res.status(400).json({ error: error.message });
-  return res.json(data);
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    return res.json(data);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 const PORT = process.env.PORT || 5000;
