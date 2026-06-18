@@ -24,18 +24,35 @@ export default function Home({ user, setUser }) {
   const [pesan, setPesan] = useState("");
 
   useEffect(() => {
-    const savedKuliner = localStorage.getItem("kuliner_data");
-    if (savedKuliner) {
-      setKulinerList(JSON.parse(savedKuliner));
-    } else {
-      setKulinerList(initialKuliner);
-      localStorage.setItem("kuliner_data", JSON.stringify(initialKuliner));
-    }
+    const fetchKuliner = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/kuliner");
+        if (res.ok) {
+          const data = await res.json();
+          setKulinerList(data);
+        } else {
+          setKulinerList(initialKuliner);
+        }
+      } catch (err) {
+        console.error(err);
+        setKulinerList(initialKuliner);
+      }
+    };
 
-    const savedSaran = localStorage.getItem("kritik_saran");
-    if (savedSaran) {
-      setSaranList(JSON.parse(savedSaran));
-    }
+    const fetchSaran = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/saran");
+        if (res.ok) {
+          const data = await res.json();
+          setSaranList(data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchKuliner();
+    fetchSaran();
   }, []);
 
   const handleImageChange = (e) => {
@@ -49,61 +66,103 @@ export default function Home({ user, setUser }) {
     }
   };
 
-  const handleAddKuliner = (e) => {
+  const handleAddKuliner = async (e) => {
     e.preventDefault();
-    const newFood = {
-      id: Date.now(),
-      nama: namaMakanan,
-      shortDesc: shortDesc,
-      image:
-        image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
-      slug: namaMakanan.toLowerCase().replace(/ /g, "-"),
-      asal: asal || "Kalimantan Selatan",
-      kategori: kategori,
-      sejarah:
-        sejarah ||
-        "Kuliner khas tradisional warisan leluhur masyarakat Banjar.",
-      faktaMenarik:
-        faktaMenarik ||
-        "Kuliner khas yang sangat digemari oleh masyarakat lokal maupun wisatawan.",
-    };
-    const updatedKuliner = [newFood, ...kulinerList];
-    setKulinerList(updatedKuliner);
-    localStorage.setItem("kuliner_data", JSON.stringify(updatedKuliner));
+    try {
+      const response = await fetch("http://localhost:5000/api/kuliner", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nama: namaMakanan,
+          asal: asal || "Kalimantan Selatan",
+          kategori: kategori,
+          image:
+            image ||
+            "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
+          shortDesc: shortDesc,
+          sejarah:
+            sejarah ||
+            "Kuliner khas tradisional warisan leluhur masyarakat Banjar.",
+          faktaMenarik:
+            faktaMenarik ||
+            "Kuliner khas yang sangat digemari oleh masyarakat lokal maupun wisatawan.",
+        }),
+      });
 
-    setNamaMakanan("");
-    setShortDesc("");
-    setImage("");
-    setAsal("");
-    setKategori("Makanan Utama");
-    setSejarah("");
-    setFaktaMenarik("");
-    setShowAddForm(false);
-    alert("Kuliner baru berhasil ditambahkan!");
-  };
-
-  const handleDeleteKuliner = (id) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus kuliner ini?")) {
-      const updatedKuliner = kulinerList.filter((item) => item.id !== id);
-      setKulinerList(updatedKuliner);
-      localStorage.setItem("kuliner_data", JSON.stringify(updatedKuliner));
+      if (response.ok) {
+        const dataBaru = await response.json();
+        setKulinerList([dataBaru, ...kulinerList]);
+        setNamaMakanan("");
+        setShortDesc("");
+        setImage("");
+        setAsal("");
+        setKategori("Makanan Utama");
+        setSejarah("");
+        setFaktaMenarik("");
+        setShowAddForm(false);
+        alert("Kuliner baru berhasil ditambahkan!");
+      } else {
+        alert("Gagal menambahkan kuliner ke database.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Gagal terhubung ke backend server.");
     }
   };
 
-  const handleSubmitSaran = (e) => {
+  const handleDeleteKuliner = async (id) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus kuliner ini?")) {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/kuliner/${id}`,
+          {
+            method: "DELETE",
+          },
+        );
+
+        if (response.ok) {
+          const updatedKuliner = kulinerList.filter((item) => item.id !== id);
+          setKulinerList(updatedKuliner);
+          alert("Kuliner berhasil dihapus!");
+        } else {
+          alert("Gagal menghapus kuliner di database.");
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Gagal terhubung ke backend server.");
+      }
+    }
+  };
+
+  const handleSubmitSaran = async (e) => {
     e.preventDefault();
-    const newSaran = {
-      id: Date.now(),
-      nama: nama || "Anonim",
-      pesan: pesan,
-      tanggal: new Date().toLocaleDateString("id-ID"),
-    };
-    const updatedList = [newSaran, ...saranList];
-    setSaranList(updatedList);
-    localStorage.setItem("kritik_saran", JSON.stringify(updatedList));
-    setNama("");
-    setPesan("");
-    alert("Kritik dan saran kamu berhasil dikirim!");
+    try {
+      const response = await fetch("http://localhost:5000/api/saran", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nama: nama || "Anonim",
+          pesan: pesan,
+        }),
+      });
+
+      if (response.ok) {
+        const dataBaru = await response.json();
+        setSaranList([dataBaru, ...saranList]);
+        setNama("");
+        setPesan("");
+        alert("Kritik dan saran kamu berhasil dikirim!");
+      } else {
+        alert("Gagal mengirim data ke server.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Gagal terhubung ke backend server.");
+    }
   };
 
   return (
@@ -316,7 +375,11 @@ export default function Home({ user, setUser }) {
                             {item.nama}
                           </span>
                           <span className="text-[10px] text-slate-400 font-medium">
-                            {item.tanggal}
+                            {item.created_at
+                              ? new Date(item.created_at).toLocaleDateString(
+                                  "id-ID",
+                                )
+                              : item.tanggal}
                           </span>
                         </div>
                         <p className="text-xs text-slate-600 font-medium leading-relaxed">
