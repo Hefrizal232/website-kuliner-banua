@@ -23,12 +23,12 @@ export default function Home({ user, setUser }) {
   const [nama, setNama] = useState("");
   const [pesan, setPesan] = useState("");
 
+  const baseUrl = "https://website-kuliner-banua.vercel.app";
+
   useEffect(() => {
     const fetchKuliner = async () => {
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/kuliner`,
-        );
+        const res = await fetch(`${baseUrl}/api/kuliner`);
         if (res.ok) {
           const data = await res.json();
           setKulinerList([...data, ...initialKuliner]);
@@ -43,9 +43,7 @@ export default function Home({ user, setUser }) {
 
     const fetchSaran = async () => {
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/saran`,
-        );
+        const res = await fetch(`${baseUrl}/api/saran`);
         if (res.ok) {
           const data = await res.json();
           setSaranList(data);
@@ -74,24 +72,21 @@ export default function Home({ user, setUser }) {
     e.preventDefault();
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/kuliner`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            nama: namaMakanan,
-            asal: asal,
-            kategori: kategori,
-            image: image,
-            shortDesc: shortDesc,
-            sejarah: sejarah,
-            faktaMenarik: faktaMenarik,
-          }),
+      const response = await fetch(`${baseUrl}/api/kuliner`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          nama: namaMakanan,
+          asal: asal,
+          kategori: kategori,
+          image: image,
+          shortDesc: shortDesc,
+          sejarah: sejarah,
+          faktaMenarik: faktaMenarik,
+        }),
+      });
 
       if (response.ok) {
         const dataBaru = await response.json();
@@ -120,12 +115,9 @@ export default function Home({ user, setUser }) {
   const handleDeleteKuliner = async (id) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus kuliner ini?")) {
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/kuliner/${id}`,
-          {
-            method: "DELETE",
-          },
-        );
+        const response = await fetch(`${baseUrl}/api/kuliner/${id}`, {
+          method: "DELETE",
+        });
 
         if (response.ok) {
           const updatedKuliner = kulinerList.filter((item) => item.id !== id);
@@ -144,19 +136,16 @@ export default function Home({ user, setUser }) {
   const handleSubmitSaran = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/saran`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            nama: nama || "Anonim",
-            pesan: pesan,
-          }),
+      const response = await fetch(`${baseUrl}/api/saran`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          nama: nama || "Anonim",
+          pesan: pesan,
+        }),
+      });
 
       if (response.ok) {
         const dataBaru = await response.json();

@@ -10,12 +10,12 @@ export default function FoodDetail() {
   const [makanan, setMakanan] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const baseUrl = "https://website-kuliner-banua.vercel.app";
+
   useEffect(() => {
     const fetchDetailKuliner = async () => {
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/kuliner/${slug}`,
-        );
+        const response = await fetch(`${baseUrl}/api/kuliner/${slug}`);
         if (response.ok) {
           const data = await response.json();
           setMakanan(data);

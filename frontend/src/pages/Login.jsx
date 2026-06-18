@@ -11,9 +11,10 @@ export default function Login({ setUser }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const baseUrl = "https://website-kuliner-banua.vercel.app";
     const endpoint = isRegister
-      ? "http://localhost:5000/api/auth/register"
-      : "http://localhost:5000/api/auth/login";
+      ? `${baseUrl}/api/auth/register`
+      : `${baseUrl}/api/auth/login`;
 
     const payload = isRegister
       ? { name, email, password }
