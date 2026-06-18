@@ -167,7 +167,7 @@ app.get("/api/saran", async (req, res) => {
   return res.json(data);
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server berjalan di port ${PORT}`);
 });

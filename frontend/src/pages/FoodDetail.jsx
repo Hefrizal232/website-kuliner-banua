@@ -14,7 +14,7 @@ export default function FoodDetail() {
     const fetchDetailKuliner = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/kuliner/${slug}`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/kuliner/${slug}`,
         );
         if (response.ok) {
           const data = await response.json();

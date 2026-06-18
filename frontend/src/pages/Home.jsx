@@ -26,7 +26,9 @@ export default function Home({ user, setUser }) {
   useEffect(() => {
     const fetchKuliner = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/kuliner");
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/api/kuliner`,
+        );
         if (res.ok) {
           const data = await res.json();
           setKulinerList([...data, ...initialKuliner]);
@@ -41,7 +43,9 @@ export default function Home({ user, setUser }) {
 
     const fetchSaran = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/saran");
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/api/kuliner`,
+        );
         if (res.ok) {
           const data = await res.json();
           setSaranList(data);
@@ -70,21 +74,24 @@ export default function Home({ user, setUser }) {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5000/api/kuliner", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/kuliner`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nama: namaMakanan,
+            asal: asal,
+            kategori: kategori,
+            image: image,
+            shortDesc: shortDesc,
+            sejarah: sejarah,
+            faktaMenarik: faktaMenarik,
+          }),
         },
-        body: JSON.stringify({
-          nama: namaMakanan,
-          asal: asal,
-          kategori: kategori,
-          image: image,
-          shortDesc: shortDesc,
-          sejarah: sejarah,
-          faktaMenarik: faktaMenarik,
-        }),
-      });
+      );
 
       if (response.ok) {
         const dataBaru = await response.json();
@@ -114,7 +121,7 @@ export default function Home({ user, setUser }) {
     if (window.confirm("Apakah Anda yakin ingin menghapus kuliner ini?")) {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/kuliner/${id}`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/kuliner/${id}`,
           {
             method: "DELETE",
           },
@@ -137,16 +144,19 @@ export default function Home({ user, setUser }) {
   const handleSubmitSaran = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/saran", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/saran`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nama: nama || "Anonim",
+            pesan: pesan,
+          }),
         },
-        body: JSON.stringify({
-          nama: nama || "Anonim",
-          pesan: pesan,
-        }),
-      });
+      );
 
       if (response.ok) {
         const dataBaru = await response.json();
