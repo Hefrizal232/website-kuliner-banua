@@ -29,7 +29,7 @@ export default function Home({ user, setUser }) {
         const res = await fetch("http://localhost:5000/api/kuliner");
         if (res.ok) {
           const data = await res.json();
-          setKulinerList(data);
+          setKulinerList([...data, ...initialKuliner]);
         } else {
           setKulinerList(initialKuliner);
         }
@@ -68,6 +68,7 @@ export default function Home({ user, setUser }) {
 
   const handleAddKuliner = async (e) => {
     e.preventDefault();
+
     try {
       const response = await fetch("http://localhost:5000/api/kuliner", {
         method: "POST",
@@ -76,18 +77,12 @@ export default function Home({ user, setUser }) {
         },
         body: JSON.stringify({
           nama: namaMakanan,
-          asal: asal || "Kalimantan Selatan",
+          asal: asal,
           kategori: kategori,
-          image:
-            image ||
-            "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
+          image: image,
           shortDesc: shortDesc,
-          sejarah:
-            sejarah ||
-            "Kuliner khas tradisional warisan leluhur masyarakat Banjar.",
-          faktaMenarik:
-            faktaMenarik ||
-            "Kuliner khas yang sangat digemari oleh masyarakat lokal maupun wisatawan.",
+          sejarah: sejarah,
+          faktaMenarik: faktaMenarik,
         }),
       });
 
@@ -104,7 +99,10 @@ export default function Home({ user, setUser }) {
         setShowAddForm(false);
         alert("Kuliner baru berhasil ditambahkan!");
       } else {
-        alert("Gagal menambahkan kuliner ke database.");
+        const errorData = await response.json();
+        alert(
+          `Gagal menambahkan: ${errorData.error || "Terjadi kesalahan server"}`,
+        );
       }
     } catch (error) {
       console.error(error);

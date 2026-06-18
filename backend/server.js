@@ -6,10 +6,11 @@ const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 app.get("/api/kuliner", async (req, res) => {
   const { data, error } = await supabase
-    .from("kuliner")
+    .from("Kuliner")
     .select("*")
     .order("id", { ascending: false });
 
@@ -19,7 +20,7 @@ app.get("/api/kuliner", async (req, res) => {
 
 app.get("/api/kuliner/:slug", async (req, res) => {
   const { data, error } = await supabase
-    .from("kuliner")
+    .from("Kuliner")
     .select("*")
     .eq("slug", req.params.slug)
     .single();
@@ -29,24 +30,55 @@ app.get("/api/kuliner/:slug", async (req, res) => {
 });
 
 app.post("/api/kuliner", async (req, res) => {
-  const { nama, asal, kategori, image, shortDesc, sejarah, faktaMenarik } =
-    req.body;
-  const slug = nama.toLowerCase().replace(/ /g, "-");
+  try {
+    const { nama, asal, kategori, image, shortDesc, sejarah, faktaMenarik } =
+      req.body;
 
-  const { data, error } = await supabase
-    .from("kuliner")
-    .insert([
-      { nama, slug, asal, kategori, image, shortDesc, sejarah, faktaMenarik },
-    ])
-    .select();
+    if (!nama || nama.trim() === "") {
+      return res
+        .status(400)
+        .json({ error: "Nama kuliner tidak terbaca oleh server" });
+    }
 
-  if (error) return res.status(400).json({ error: error.message });
-  return res.status(201).json(data[0]);
+    const safeNama = nama.trim();
+    const baseSlug = safeNama
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-");
+
+    const uniqueSlug = `${baseSlug}-${Date.now()}`;
+
+    const { data, error } = await supabase
+      .from("Kuliner")
+      .insert([
+        {
+          nama: safeNama,
+          slug: uniqueSlug,
+          asal: asal || "Kalimantan Selatan",
+          kategori: kategori || "Makanan Utama",
+          image:
+            image ||
+            "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
+          shortDesc: shortDesc || "Kuliner khas tradisional.",
+          sejarah: sejarah || "Kuliner khas tradisional warisan leluhur.",
+          faktaMenarik: faktaMenarik || "Kuliner khas yang sangat digemari.",
+        },
+      ])
+      .select();
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    return res.status(201).json(data[0]);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 app.delete("/api/kuliner/:id", async (req, res) => {
   const { error } = await supabase
-    .from("kuliner")
+    .from("Kuliner")
     .delete()
     .eq("id", req.params.id);
 
@@ -75,5 +107,7 @@ app.get("/api/saran", async (req, res) => {
   return res.json(data);
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server berjalan lancar di port ${PORT}`));
+const PORT = 5000;
+app.listen(PORT, () => {
+  console.log(`Server berjalan di port ${PORT}`);
+});
