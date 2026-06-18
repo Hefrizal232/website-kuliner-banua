@@ -44,7 +44,7 @@ export default function Home({ user, setUser }) {
     const fetchSaran = async () => {
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/kuliner`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/saran`,
         );
         if (res.ok) {
           const data = await res.json();
