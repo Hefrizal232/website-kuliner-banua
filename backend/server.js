@@ -169,10 +169,10 @@ app.get("/api/saran", async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== "production") {
+if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Server running locally on port ${PORT}`);
   });
 }
 
-module.exports = app;
+export default app;

@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-client";
+import { createClient } from "@supabase/supabase-js";
 
 if (process.env.NODE_ENV !== "production") {
   const dotenv = await import("dotenv");
