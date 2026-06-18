@@ -3,25 +3,61 @@ import { useNavigate, Link } from "react-router-dom";
 
 export default function Login({ setUser }) {
   const [isRegister, setIsRegister] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (email === "admin@kulinerbanua.com" && password === "admin123") {
-      localStorage.setItem("user_role", "admin");
-      localStorage.setItem("is_logged_in", "true");
-      setUser({ role: "admin" });
-      navigate("/");
-    } else if (email === "guest@kulinerbanua.com" && password === "guest123") {
-      localStorage.setItem("user_role", "guest");
-      localStorage.setItem("is_logged_in", "true");
-      setUser({ role: "guest" });
-      navigate("/");
-    } else {
-      alert("Email atau password salah!");
+    const endpoint = isRegister
+      ? "http://localhost:5000/api/auth/register"
+      : "http://localhost:5000/api/auth/login";
+
+    const payload = isRegister
+      ? { name, email, password }
+      : { email, password };
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (isRegister) {
+          alert(
+            "Registrasi Berhasil! Silakan masuk menggunakan akun baru Anda.",
+          );
+          setIsRegister(false);
+          setName("");
+          setPassword("");
+        } else {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user_role", data.user.role);
+          localStorage.setItem("is_logged_in", "true");
+
+          setUser({
+            role: data.user.role,
+            name: data.user.name,
+            email: data.user.email,
+          });
+
+          alert(`Selamat datang kembali, ${data.user.name}!`);
+          navigate("/");
+        }
+      } else {
+        alert(data.error || "Terjadi kesalahan pada sistem autentikasi.");
+      }
+    } catch (error) {
+      console.error("Auth error:", error);
+      alert("Gagal terhubung ke server auth.");
     }
   };
 
@@ -29,53 +65,80 @@ export default function Login({ setUser }) {
     <div className="min-h-screen flex flex-col lg:flex-row bg-white">
       <div className="hidden lg:flex lg:w-1/2 bg-[#008153] p-16 flex-col justify-between text-white relative overflow-hidden">
         <div className="relative z-10">
-          <h1 className="text-5xl font-black mb-6">Kuliner Banua</h1>
-          <p className="text-emerald-50 text-lg max-w-md font-medium">
-            Jelajahi, nikmati, dan lestarikan warisan kuliner legendaris
-            Kalimantan Selatan.
+          <h1 className="text-5xl font-black tracking-tight mb-4 uppercase">
+            Kuliner Banua
+          </h1>
+          <p className="text-emerald-100 font-medium max-w-md text-sm leading-relaxed">
+            Arsip digital ragam cita rasa tradisional Kalimantan Selatan. Masuk
+            ke panel untuk mengelola konten budaya lokal.
           </p>
         </div>
-        <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
+        <div className="relative z-10 text-xs font-bold uppercase tracking-widest text-emerald-200">
+          © 2026 Portal Admin Kuliner Banua
+        </div>
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-emerald-700/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
       </div>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-16 relative">
         <div className="w-full max-w-md">
-          <div className="mb-10 text-center lg:text-left">
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-              {isRegister ? "Buat Akun Baru" : "Selamat Datang"}
+          <div className="mb-8 text-center lg:text-left">
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight uppercase mb-2">
+              {isRegister ? "Buat Akun Admin" : "Log In Admin"}
             </h2>
-            <p className="text-slate-400 mt-2 font-medium">
+            <p className="text-slate-400 font-medium text-sm">
               {isRegister
-                ? "Silakan isi detail untuk mendaftar"
-                : "Masuk dengan akun terdaftar"}
+                ? "Daftarkan diri Anda untuk mengelola arsip kuliner."
+                : "Silakan masukkan kredensial Anda untuk masuk ke sistem."}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isRegister && (
+              <input
+                type="text"
+                placeholder="Nama Lengkap"
+                value={name}
+                className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-[#008153] focus:ring-1 focus:ring-[#008153] outline-none transition-all text-sm"
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            )}
             <input
               type="email"
               placeholder="Alamat Email"
-              className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-[#008153] focus:ring-1 focus:ring-[#008153] outline-none transition-all"
+              value={email}
+              className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-[#008153] focus:ring-1 focus:ring-[#008153] outline-none transition-all text-sm"
               onChange={(e) => setEmail(e.target.value)}
               required
             />
             <input
               type="password"
               placeholder="Kata Sandi"
-              className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-[#008153] focus:ring-1 focus:ring-[#008153] outline-none transition-all"
+              value={password}
+              className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-[#008153] focus:ring-1 focus:ring-[#008153] outline-none transition-all text-sm"
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <button className="w-full bg-[#008153] hover:bg-[#006b44] text-white py-4 rounded-2xl font-bold transition-all shadow-lg shadow-[#008153]/20">
+            <button
+              type="submit"
+              className="w-full bg-[#008153] hover:bg-[#006b44] text-white py-4 rounded-2xl font-bold text-sm transition-all shadow-lg shadow-[#008153]/20 uppercase tracking-wider"
+            >
               {isRegister ? "Daftar Sekarang" : "Masuk ke Akun"}
             </button>
           </form>
 
           <div className="mt-8 text-center">
-            <p className="text-slate-500 font-medium">
+            <p className="text-slate-500 font-medium text-sm">
               {isRegister ? "Sudah punya akun?" : "Belum punya akun?"}{" "}
               <button
-                onClick={() => setIsRegister(!isRegister)}
+                type="button"
+                onClick={() => {
+                  setIsRegister(!isRegister);
+                  setName("");
+                  setEmail("");
+                  setPassword("");
+                }}
                 className="text-[#008153] font-black hover:underline"
               >
                 {isRegister ? "Masuk di sini" : "Daftar sekarang"}
@@ -83,9 +146,9 @@ export default function Login({ setUser }) {
             </p>
             <Link
               to="/"
-              className="block mt-6 text-slate-400 font-bold hover:text-slate-900 text-sm uppercase tracking-wider"
+              className="block mt-6 text-xs font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors"
             >
-              Kembali ke Beranda
+              ← Kembali ke Beranda
             </Link>
           </div>
         </div>

@@ -8,6 +8,66 @@ app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email dan password wajib diisi" });
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name: name || "Admin Kuliner",
+          role: "admin",
+        },
+      },
+    });
+
+    if (error) return res.status(400).json({ error: error.message });
+    return res
+      .status(201)
+      .json({ message: "Registrasi berhasil", user: data.user });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email dan password wajib diisi" });
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) return res.status(400).json({ error: error.message });
+
+    const userPayload = {
+      id: data.user.id,
+      email: data.user.email,
+      name: data.user.user_metadata?.name || "Admin",
+      role: data.user.user_metadata?.role || "admin",
+    };
+
+    return res.json({
+      message: "Login berhasil",
+      token: data.session.access_token,
+      user: userPayload,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 app.get("/api/kuliner", async (req, res) => {
   const { data, error } = await supabase
     .from("Kuliner")
